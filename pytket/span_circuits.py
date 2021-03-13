@@ -11,34 +11,34 @@ from pytket.passes import (CliffordSimp, SynthesiseIBM, SequencePass,
 from pytket.circuit import Circuit, Unitary1qBox, Unitary2qBox, OpType, Op
 from pytket.extensions.qiskit import tk_to_qiskit
 
-from utils import create_dir, fig_dir
+from utils import create_dir, fig_dir, draw_circ
 
-def draw_circ(circ:Circuit, filename:str):
-    qk_circ = tk_to_qiskit(circ)
-    qk_circ.draw(output='mpl', filename=filename)
-    plt.close()
+def optimize_circuit(circ:Circuit, seq_list:list, figname=None) -> None:
+    """ Optimize in place the circuit
 
-def convert_circuit(circuit_dir:str, circuit_fn:str, seq_list:list, 
-            figname:str, lprint:bool=False):
-    circ = circuit_from_qasm(f'{circuit_dir}{circuit_fn}.qasm')
-
-    if lprint:
+    :param circ: original circuit
+    :type circ: Circuit
+    :param seq_list: sequence for optimizer
+    :type seq_list: list
+    :param figname: name of the figure if print else None
+    :type figname: str
+    """
+    # Draw original circuit
+    if figname is not None:
         draw_circ(circ, f'{figname}_base')
 
+    # Sequence of passes for optimization
     to_zx_optimised = SequencePass(seq_list)
-
-    # we now use the same pass as before:
     to_zx_optimised.apply(circ)
     
-    if lprint:
+    # Draw optimized circuit
+    if figname is not None:
         draw_circ(circ, f'{figname}_optim')
     
-    n_twogates = (circ.n_gates_of_type(OpType.CZ) + circ.n_gates_of_type(OpType.CX)
-                + circ.n_gates_of_type(OpType.CY) + circ.n_gates_of_type(OpType.H))
-
-    return circ.depth(), circ.n_gates, n_twogates
-
 if __name__ == '__main__':
+    fig_dir = 'figures/optim/'
+    create_dir(fig_dir)
+    
     circuit_dir = 'circuits/'
     circuits_fn = [f'small_{i:d}' for i in range(1, 5)] + [f'medium_{i:d}' for i in range(1, 5)]
     circuits_fn += [f'large_{i:d}' for i in range(1, 5)]
@@ -55,17 +55,29 @@ if __name__ == '__main__':
     df_gates = pd.DataFrame(np.zeros((ncircuits, 3)), index=circuits_fn, columns=optims.keys())
     df_twoq_gates = pd.DataFrame(np.zeros((ncircuits, 3)), index=circuits_fn, columns=optims.keys())
 
+    # Loop on optims
     for optim, seq_list in optims.items():
         optim_figdir = f'{fig_dir}{optim}/'
         create_dir(optim_figdir)
+        # Loop on circuits
         for circuit_fn in circuits_fn:
             print(f'{optim} + {circuit_fn}')
             figname = f'{optim_figdir}{circuit_fn}'
-            depth, ngates, ntwogates = convert_circuit(circuit_dir, circuit_fn, 
-                    seq_list, figname)
+
+            # Creation of circuit from filename
+            circ = circuit_from_qasm(f'{circuit_dir}{circuit_fn}.qasm')
+            optimize_circuit(circ, seq_list, figname)
+
+            # Retrieve parameters of circuit
+            depth = circ.depth()
+            n_gates = circ.n_gates
+            n_twogates = (circ.n_gates_of_type(OpType.CZ) + circ.n_gates_of_type(OpType.CX)
+                + circ.n_gates_of_type(OpType.CY) + circ.n_gates_of_type(OpType.H))
+
+            # Store the parameters into DataFrame
             df_depth[optim][circuit_fn] = depth
-            df_gates[optim][circuit_fn] = ngates
-            df_twoq_gates[optim][circuit_fn] = ntwogates
+            df_gates[optim][circuit_fn] = n_gates
+            df_twoq_gates[optim][circuit_fn] = n_twogates
 
     print('Depth:\n', df_depth)
     print('Gates:\n', df_gates)
