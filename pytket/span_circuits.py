@@ -11,7 +11,7 @@ from pytket.passes import (CliffordSimp, SynthesiseIBM, SequencePass,
 from pytket.circuit import Circuit, Unitary1qBox, Unitary2qBox, OpType, Op
 from pytket.extensions.qiskit import tk_to_qiskit
 
-from utils import create_dir, fig_dir, draw_circ
+from utils import create_dir, draw_circ
 
 def optimize_circuit(circ:Circuit, seq_list:list, figname=None) -> None:
     """ Optimize in place the circuit
