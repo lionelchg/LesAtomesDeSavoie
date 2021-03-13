@@ -16,6 +16,7 @@ from utils import create_dir, fig_dir
 def draw_circ(circ:Circuit, filename:str):
     qk_circ = tk_to_qiskit(circ)
     qk_circ.draw(output='mpl', filename=filename)
+    plt.close()
 
 def convert_circuit(circuit_dir:str, circuit_fn:str, seq_list:list, 
             figname:str, lprint:bool=False):
