@@ -47,7 +47,7 @@ if __name__ == '__main__':
     fig_dir = 'figures/optim/'
     create_dir(fig_dir)
     xscale = 'linear'
-    
+
     circuit_dir = 'circuits/'
     circuits_fn = [f'small_{i:d}' for i in range(1, 5)] + [f'medium_{i:d}' for i in range(1, 5)]
     circuits_fn += [f'large_{i:d}' for i in range(1, 5)]
@@ -94,16 +94,16 @@ if __name__ == '__main__':
     df_depth.plot.barh(ax=ax)
     ax.set_xscale(xscale)
     ax.set_title('Circuit depth')
-    fig.savefig(f'{optim_figdir}depth_base', bbox_inches='tight')
+    fig.savefig(f'{optim_figdir}depth', bbox_inches='tight')
 
     fig, ax = plt.subplots()
     df_gates.plot.barh(ax=ax)
     ax.set_xscale(xscale)
     ax.set_title('Number of gates')
-    fig.savefig(f'{optim_figdir}gates_base', bbox_inches='tight')
+    fig.savefig(f'{optim_figdir}gates', bbox_inches='tight')
 
     fig, ax = plt.subplots()
     df_twoq_gates.plot.barh(ax=ax)
     ax.set_xscale(xscale)
     ax.set_title('Number of two qubits gates')
-    fig.savefig(f'{optim_figdir}twogates_base', bbox_inches='tight')
+    fig.savefig(f'{optim_figdir}twogates', bbox_inches='tight')
