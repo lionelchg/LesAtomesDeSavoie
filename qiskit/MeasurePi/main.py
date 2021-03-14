@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from qiskit.tools.monitor import job_monitor
 from qiskit.providers.ibmq import least_busy
+from qiskit.test.mock import FakeAlmaden, FakeMelbourne, FakeManhattan, FakeMontreal
 
 # Visualisation settings
 from plot import ax_prop
@@ -88,7 +89,7 @@ def get_pi_estimate(n_qubits, simulator, print_circ=False):
 def estimate_pi(n_qubits_max, simulator, casename):
     # estimate pi using different numbers of qubits
     pi = np.pi
-    nqs = list(range(6, n_qubits_max + 1, 2))
+    nqs = list(range(2, n_qubits_max + 1, 1))
     pi_estimates = []
     for nq in nqs:
         thisnq_pi_estimate = get_pi_estimate(nq, simulator)
@@ -107,19 +108,24 @@ def estimate_pi(n_qubits_max, simulator, casename):
     plt.savefig(f'figures/{casename}', bbox_inches='tight')
 
 if __name__ == '__main__':
+    # Local simulator
     simulator = Aer.get_backend('qasm_simulator')
-    ## Load your IBMQ account if 
-    ## you'd like to use the cloud simulator or real quantum devices
+    simulator_realdevice = FakeMontreal()
+
+    # Load your IBMQ account if 
+    # you'd like to use the cloud simulator or real quantum devices
     my_provider = IBMQ.load_account()
     simulator_cloud = my_provider.get_backend('ibmq_qasm_simulator')
     device = my_provider.get_backend('ibmq_16_melbourne')
-    print("Running on device: ", device)
+
+    print("Running on device: ", simulator_realdevice)
 
     # provider = IBMQ.get_provider("ibm-q")
     # device = least_busy(provider.backends(filters=lambda x: x.configuration().n_qubits >= 3 and 
     #                                 not x.configuration().simulator and x.status().operational==True))
     # print("Running on current least busy device: ", device)
 
-    # estimate_pi(10, simulator, 'local_qasm')
-    # estimate_pi(10, simulator_cloud, 'ibmq_qasm')
+    estimate_pi(10, simulator, 'local_qasm')
+    estimate_pi(10, simulator_cloud, 'ibmq_qasm')
+    estimate_pi(10, simulator_realdevice, str(simulator_realdevice))
     estimate_pi(10, device, str(device))
