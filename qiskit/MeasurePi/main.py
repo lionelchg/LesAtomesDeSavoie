@@ -110,7 +110,7 @@ def estimate_pi(n_qubits_max, simulator, casename):
 if __name__ == '__main__':
     # Local simulator
     simulator = Aer.get_backend('qasm_simulator')
-    simulator_realdevice = FakeMontreal()
+    simulator_realdevice = FakeManhattan()
 
     # Load your IBMQ account if 
     # you'd like to use the cloud simulator or real quantum devices
@@ -125,7 +125,7 @@ if __name__ == '__main__':
     #                                 not x.configuration().simulator and x.status().operational==True))
     # print("Running on current least busy device: ", device)
 
-    estimate_pi(10, simulator, 'local_qasm')
-    estimate_pi(10, simulator_cloud, 'ibmq_qasm')
+    # estimate_pi(10, simulator, 'local_qasm')
+    # estimate_pi(10, simulator_cloud, 'ibmq_qasm')
     estimate_pi(10, simulator_realdevice, str(simulator_realdevice))
-    estimate_pi(10, device, str(device))
+    # estimate_pi(10, device, str(device))
