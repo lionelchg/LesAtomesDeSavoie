@@ -34,10 +34,19 @@ def optimize_circuit(circ:Circuit, seq_list:list, figname=None) -> None:
     # Draw optimized circuit
     if figname is not None:
         draw_circ(circ, f'{figname}_optim')
+
+def params_circ(circ:Circuit):
+    # Retrieve parameters of circuit
+    depth = circ.depth()
+    n_gates = circ.n_gates
+    n_twogates = (circ.n_gates_of_type(OpType.CZ) + circ.n_gates_of_type(OpType.CX)
+        + circ.n_gates_of_type(OpType.CY) + circ.n_gates_of_type(OpType.H))
+    return depth, n_gates, n_twogates
     
 if __name__ == '__main__':
     fig_dir = 'figures/optim/'
     create_dir(fig_dir)
+    xscale = 'linear'
     
     circuit_dir = 'circuits/'
     circuits_fn = [f'small_{i:d}' for i in range(1, 5)] + [f'medium_{i:d}' for i in range(1, 5)]
@@ -47,13 +56,14 @@ if __name__ == '__main__':
 
     optims = dict()
 
-    optims['Quil'] = [DecomposeBoxes(), RebaseQuil(), EulerAngleReduction(OpType.Rx, OpType.Rz)]
-    optims['IBM'] = [DecomposeBoxes(), RebaseIBM(), EulerAngleReduction(OpType.Rx, OpType.Rz)]
-    optims['Circ'] = [DecomposeBoxes(), RebaseCirq(), EulerAngleReduction(OpType.Rx, OpType.Rz)]
+    optims['Base'] = []
+    # optims['Quil'] = [DecomposeBoxes(), RebaseQuil(), EulerAngleReduction(OpType.Rx, OpType.Rz)]
+    # optims['IBM'] = [DecomposeBoxes(), RebaseIBM(), EulerAngleReduction(OpType.Rx, OpType.Rz)]
+    # optims['Circ'] = [DecomposeBoxes(), RebaseCirq(), EulerAngleReduction(OpType.Rx, OpType.Rz)]
 
-    df_depth = pd.DataFrame(np.zeros((ncircuits, 3)), index=circuits_fn, columns=optims.keys())
-    df_gates = pd.DataFrame(np.zeros((ncircuits, 3)), index=circuits_fn, columns=optims.keys())
-    df_twoq_gates = pd.DataFrame(np.zeros((ncircuits, 3)), index=circuits_fn, columns=optims.keys())
+    df_depth = pd.DataFrame(np.zeros((ncircuits, len(optims))), index=circuits_fn, columns=optims.keys())
+    df_gates = pd.DataFrame(np.zeros((ncircuits, len(optims))), index=circuits_fn, columns=optims.keys())
+    df_twoq_gates = pd.DataFrame(np.zeros((ncircuits, len(optims))), index=circuits_fn, columns=optims.keys())
 
     # Loop on optims
     for optim, seq_list in optims.items():
@@ -69,10 +79,7 @@ if __name__ == '__main__':
             optimize_circuit(circ, seq_list, figname)
 
             # Retrieve parameters of circuit
-            depth = circ.depth()
-            n_gates = circ.n_gates
-            n_twogates = (circ.n_gates_of_type(OpType.CZ) + circ.n_gates_of_type(OpType.CX)
-                + circ.n_gates_of_type(OpType.CY) + circ.n_gates_of_type(OpType.H))
+            depth, n_gates, n_twogates = params_circ(circ)
 
             # Store the parameters into DataFrame
             df_depth[optim][circuit_fn] = depth
@@ -85,15 +92,18 @@ if __name__ == '__main__':
 
     fig, ax = plt.subplots()
     df_depth.plot.barh(ax=ax)
+    ax.set_xscale(xscale)
     ax.set_title('Circuit depth')
-    fig.savefig('figures/depth', bbox_inches='tight')
+    fig.savefig(f'{optim_figdir}depth_base', bbox_inches='tight')
 
     fig, ax = plt.subplots()
     df_gates.plot.barh(ax=ax)
+    ax.set_xscale(xscale)
     ax.set_title('Number of gates')
-    fig.savefig('figures/gates', bbox_inches='tight')
+    fig.savefig(f'{optim_figdir}gates_base', bbox_inches='tight')
 
     fig, ax = plt.subplots()
     df_twoq_gates.plot.barh(ax=ax)
+    ax.set_xscale(xscale)
     ax.set_title('Number of two qubits gates')
-    fig.savefig('figures/twogates', bbox_inches='tight')
+    fig.savefig(f'{optim_figdir}twogates_base', bbox_inches='tight')
