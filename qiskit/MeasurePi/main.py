@@ -88,7 +88,7 @@ def get_pi_estimate(n_qubits, simulator, print_circ=False):
 def estimate_pi(n_qubits_max, simulator, casename):
     # estimate pi using different numbers of qubits
     pi = np.pi
-    nqs = list(range(2, n_qubits_max + 1, 2))
+    nqs = list(range(6, n_qubits_max + 1, 2))
     pi_estimates = []
     for nq in nqs:
         thisnq_pi_estimate = get_pi_estimate(nq, simulator)
@@ -112,13 +112,14 @@ if __name__ == '__main__':
     ## you'd like to use the cloud simulator or real quantum devices
     my_provider = IBMQ.load_account()
     simulator_cloud = my_provider.get_backend('ibmq_qasm_simulator')
-    # device = my_provider.get_backend('ibmq_16_melbourne')
+    device = my_provider.get_backend('ibmq_16_melbourne')
+    print("Running on device: ", device)
 
-    provider = IBMQ.get_provider("ibm-q")
-    device = least_busy(provider.backends(filters=lambda x: x.configuration().n_qubits >= 3 and 
-                                    not x.configuration().simulator and x.status().operational==True))
-    print("Running on current least busy device: ", device)
+    # provider = IBMQ.get_provider("ibm-q")
+    # device = least_busy(provider.backends(filters=lambda x: x.configuration().n_qubits >= 3 and 
+    #                                 not x.configuration().simulator and x.status().operational==True))
+    # print("Running on current least busy device: ", device)
 
     # estimate_pi(10, simulator, 'local_qasm')
-    estimate_pi(8, simulator_cloud, 'ibmq_qasm')
-    estimate_pi(8, device, str(device))
+    # estimate_pi(10, simulator_cloud, 'ibmq_qasm')
+    estimate_pi(10, device, str(device))
