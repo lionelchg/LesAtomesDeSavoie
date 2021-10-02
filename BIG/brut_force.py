@@ -7,8 +7,8 @@ from pathlib import Path
 fig_dir = Path('figures')
 fig_dir.mkdir(parents=True, exist_ok=True)
 
-def generate_Q(N = 5,k = 1):
-    Q = np.ones((N,N))
+def generate_Q(N = 5, k = 1):
+    Q = np.ones((N, N))
     Q_ = -np.ones((N,N))
     if k > 1:
         return np.triu(Q,k=N-k)+np.triu(Q_,k=N-k+1)
