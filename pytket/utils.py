@@ -2,12 +2,13 @@ import os
 import matplotlib.pyplot as plt
 from pytket.circuit import Circuit
 from pytket.extensions.qiskit import tk_to_qiskit
+from pathlib import Path
 
-def create_dir(dir_name:str) -> None:
+def create_dir(dir_name: str) -> None:
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
 
-def draw_circ(circ:Circuit, filename:str):
+def draw_circ(circ: Circuit, filename: Path):
     qk_circ = tk_to_qiskit(circ)
     qk_circ.draw(output='mpl', filename=filename)
     plt.close()

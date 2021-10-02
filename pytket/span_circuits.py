@@ -1,17 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from pathlib import Path
 
 from pytket.qasm import circuit_from_qasm
-from pytket.passes import (RebaseCirq, RebaseCustom, RebaseHQS, 
-                        RebaseIBM, RebaseProjectQ, RebasePyZX, 
+from pytket.passes import (RebaseCirq, RebaseCustom, RebaseHQS,
+                        RebaseIBM, RebaseProjectQ, RebasePyZX,
                         RebaseQuil, RebaseTket)
-from pytket.passes import (CliffordSimp, SynthesiseIBM, SequencePass, 
+from pytket.passes import (CliffordSimp, SynthesiseIBM, SequencePass,
         DecomposeBoxes, FullPeepholeOptimise, EulerAngleReduction)
 from pytket.circuit import Circuit, Unitary1qBox, Unitary2qBox, OpType, Op
 from pytket.extensions.qiskit import tk_to_qiskit
 
-from utils import create_dir, draw_circ
+from utils import draw_circ
 
 def optimize_circuit(circ:Circuit, seq_list:list, figname=None) -> None:
     """ Optimize in place the circuit
@@ -30,7 +31,7 @@ def optimize_circuit(circ:Circuit, seq_list:list, figname=None) -> None:
     # Sequence of passes for optimization
     to_zx_optimised = SequencePass(seq_list)
     to_zx_optimised.apply(circ)
-    
+
     # Draw optimized circuit
     if figname is not None:
         draw_circ(circ, f'{figname}_optim')
@@ -42,10 +43,11 @@ def params_circ(circ:Circuit):
     n_twogates = (circ.n_gates_of_type(OpType.CZ) + circ.n_gates_of_type(OpType.CX)
         + circ.n_gates_of_type(OpType.CY) + circ.n_gates_of_type(OpType.H))
     return depth, n_gates, n_twogates
-    
+
 if __name__ == '__main__':
-    fig_dir = 'figures/optim/'
-    create_dir(fig_dir)
+    fig_dir = Path('figures/optim/')
+    fig_dir.mkdir(parents=True, exist_ok=True)
+
     xscale = 'linear'
 
     circuit_dir = 'circuits/'
@@ -67,8 +69,8 @@ if __name__ == '__main__':
 
     # Loop on optims
     for optim, seq_list in optims.items():
-        optim_figdir = f'{fig_dir}{optim}/'
-        create_dir(optim_figdir)
+        optim_figdir = fig_dir / optim
+
         # Loop on circuits
         for circuit_fn in circuits_fn:
             print(f'{optim} + {circuit_fn}')
