@@ -138,15 +138,8 @@ def get_expectation(nqubits, shots=4096):
 
     return execute_circ
 
-if __name__ == '__main__':
-    fig_dir = Path('figures/qaoa')
-    fig_dir.mkdir(parents=True, exist_ok=True)
-
-    # Scipy minimize methods
-    minimize_methods = ['Nelder-Mead', 'Powell', 'CG', 'BFGS', 'Newton-CG', 'COBYLA']
-
-    # Define problem
-    nqubits = 5
+def run_exp(nqubits: int):
+    """ Run experiment of QAOA """
     expectation = get_expectation(nqubits=nqubits)
     p0 = np.random.uniform(size = 20)
     res = minimize(expectation,
@@ -157,9 +150,20 @@ if __name__ == '__main__':
     shots = 4096
     backend = Aer.get_backend('aer_simulator')
 
-    qc_res = create_qaoa_circ(res.x,nqubits)
+    qc_res = create_qaoa_circ(res.x, nqubits)
 
     counts = backend.run(qc_res, seed_simulator=10, shots = shots).result().get_counts()
+
+    # Number the chosen bitstrings
+    array_bitstrings = np.array(list(counts.keys()))
+    array_counts = np.array(list(counts.values()))
+    list_ind = np.argwhere(array_counts > 0.5 * np.max(array_counts))
+
+    # Seleceted bitstrings
+    selected_bitstrings = array_bitstrings[list_ind]
+    selected_counts = array_counts[list_ind]
+    print(selected_bitstrings)
+    print(selected_counts)
 
     # Plot results after pproc
     fig, ax = plt.subplots()
@@ -174,4 +178,15 @@ if __name__ == '__main__':
     ax.set_xlabel('Cost')
     ax.set_ylabel('Counts')
     ax.grid(True)
-    fig.savefig(fig_dir / f'N_{nqubits:d}_cost_counts_')
+    fig.savefig(fig_dir / f'N_{nqubits:d}_cost_counts')
+
+if __name__ == '__main__':
+    fig_dir = Path('figures/qaoa')
+    fig_dir.mkdir(parents=True, exist_ok=True)
+
+    # Scipy minimize methods
+    minimize_methods = ['Nelder-Mead', 'Powell', 'CG', 'BFGS', 'Newton-CG', 'COBYLA']
+
+    # Define problem
+    nqubits = 5
+    run_exp(nqubits)
