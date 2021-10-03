@@ -66,7 +66,7 @@ def compute_expectation(counts,  nqubits):
 
 # We will also bring the different circuit components that
 # build the qaoa circuit under a single function
-def create_qaoa_circ(theta, nqubits):
+def create_qaoa_circ(beta, gamma, backend, nqubits):
 
     """
     Creates a parametrized qaoa circuit
@@ -79,17 +79,14 @@ def create_qaoa_circ(theta, nqubits):
     Returns:
         qc: qiskit circuit
     """
-    p = int(len(theta) / 2)
+    # p = int(len(theta) / 2)
     qc = tk.Circuit(nqubits)
-
-    beta = theta[:p]
-    gamma = theta[p:]
 
     # initial_state
     for i in range(0, nqubits):
         qc.H(i)
 
-    for irep in range(0, p):
+    for irep in range(0, len(beta)):
 
         pauli_tmp = tk.circuit.PauliExpBox([Pauli.Z, Pauli.Z, Pauli.Z, Pauli.Z], 2 * gamma[irep])
 
@@ -106,12 +103,14 @@ def create_qaoa_circ(theta, nqubits):
         for i in range(0, nqubits):
             qc.Rx(2 * beta[irep], i)
 
+
+    qc = backend.get_compiled_circuit(qc)
     qc.measure_all()
 
     return qc
 
 # Finally we write a function that executes the circuit on the chosen backend
-def get_expectation(nqubits, shots=1024):
+def get_expectation(template, beta, gamma,  backend, nqubits, shots=1024):
 
     """
     Runs parametrized circuit
@@ -122,12 +121,17 @@ def get_expectation(nqubits, shots=1024):
            Number of repetitions of unitaries
     """
     shots = max(shots, 2**nqubits)
-    backend = AerBackend()
+    n = len(beta)
 
     def execute_circ(theta):
-
-        qc = create_qaoa_circ(theta=theta,nqubits=nqubits)
-        qc = backend.get_compiled_circuit(qc)
+        qc = template.copy()
+        qc.symbol_substitution({
+            beta[i]: theta[i] for i in range(len(beta))
+        } )
+        qc.symbol_substitution({
+            gamma[i]: theta[i + n] for i in range(len(beta))
+        })
+        # qc = create_qaoa_circ(theta=theta,nqubits=nqubits)
         handle = backend.process_circuit(qc, n_shots=shots)
         counts = backend.get_result(handle).get_counts()
         print(counts)
@@ -141,8 +145,14 @@ def run_exp(nqubits: int, opt_method: str, fig_dir: Path):
     fig_dir = fig_dir / opt_method
     fig_dir.mkdir(parents=True, exist_ok=True)
 
-    expectation = get_expectation(nqubits=nqubits)
-    p0 = np.random.uniform(size = 20)
+    nparams = 2
+    beta = sympy.symbols(f'b_0:{nparams}')
+    gamma = sympy.symbols(f'g_0:{nparams}')
+    backend = AerBackend()
+    template = create_qaoa_circ(beta, gamma, backend, nqubits)
+
+    expectation = get_expectation(template, beta, gamma, backend, nqubits=nqubits)
+    p0 = np.random.uniform(size = 2 * nparams)
     res = minimize(expectation,
                     x0 = p0,
                 method=opt_method,
@@ -155,7 +165,13 @@ def run_exp(nqubits: int, opt_method: str, fig_dir: Path):
 
     shots = 1024
 
-    qc_res = create_qaoa_circ(res.x, nqubits)
+    qc_res = template.copy()
+    qc_res.symbol_substitution({
+            beta[i]: res.x[i] for i in range(nparams)
+        } )
+    qc_res.symbol_substitution({
+            gamma[i]: res.x[i + nparams] for i in range(nparams)
+        })
     backend = AerBackend()
     qc_res = backend.get_compiled_circuit(qc_res)
     handle = backend.process_circuit(qc_res, n_shots=shots)
@@ -203,7 +219,7 @@ def plot_chain(chain: str, figname: Path):
             sumbin += chain[i] * chain[i+len(chain)-tau]
         result.append(abs(sumbin))
 
-    x = np.arange(1,len(chain)+1)
+    x = np.arange(1, len(chain)+1)
     fig, ax = plt.subplots()
     ax.set_title("Autocorrelation shape")
     ax.set_xlabel("Delay")
