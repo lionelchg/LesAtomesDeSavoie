@@ -55,12 +55,10 @@ def compute_expectation(counts,  nqubits):
     avg = 0
     sum_count = 0
     for bitstring, count in counts.items():
-        print(bitstring, count)
 
         obj = cost_function(x=bitstring, nqubits=nqubits)
         avg += obj * count
         sum_count += count
-    print(avg / sum_count)
     return avg / sum_count
 
 

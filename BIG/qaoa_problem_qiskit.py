@@ -57,13 +57,11 @@ def compute_expectation(counts,  nqubits):
     avg = 0
     sum_count = 0
     for bitstring, count in counts.items():
-        print(bitstring, count)
 
         obj = cost_function(x=bitstring, nqubits=nqubits)
         avg += obj * count
         sum_count += count
 
-    print(avg / sum_count)
     return avg / sum_count
 
 
@@ -148,11 +146,10 @@ def run_exp(nqubits: int, opt_method: str, fig_dir: Path):
     fig_dir.mkdir(parents=True, exist_ok=True)
 
     expectation = get_expectation(nqubits=nqubits)
-    p0 = np.random.uniform(size = 20)
+    p0 = np.random.uniform(size = 50)
     res = minimize(expectation,
                     x0 = p0,
-                method=opt_method,
-                options={'maxiter': 50})
+                method=opt_method)
 
     if res.success:
         print('Convergence OK')
@@ -160,11 +157,11 @@ def run_exp(nqubits: int, opt_method: str, fig_dir: Path):
         print('Convergence failed')
 
 
-    shots = 4096
+    shots = 200000
     backend = Aer.get_backend('aer_simulator')
 
     qc_res = create_qaoa_circ(res.x, nqubits)
-    qc_res.draw(output='mpl', filename=fig_dir / f'circuit_N{nqubits:d}')
+    # qc_res.draw(output='mpl', filename=fig_dir / f'circuit_N{nqubits:d}')
 
     counts = backend.run(qc_res, seed_simulator=10, shots = shots).result().get_counts()
 
@@ -222,7 +219,8 @@ if __name__ == '__main__':
     fig_dir.mkdir(parents=True, exist_ok=True)
 
     # Scipy minimize methods
-    nqubits_list = [3, 4, 5, 6, 7]
+    # nqubits_list = [3, 4, 5, 6, 7]
+    nqubits_list = [13]
     # minimize_methods = ['Nelder-Mead', 'Powell', 'COBYLA']
     minimize_methods = ['Nelder-Mead']
 
