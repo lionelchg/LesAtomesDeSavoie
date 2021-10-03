@@ -162,8 +162,9 @@ def run_exp(nqubits: int):
     # Seleceted bitstrings
     selected_bitstrings = array_bitstrings[list_ind]
     selected_counts = array_counts[list_ind]
-    print(selected_bitstrings)
-    print(selected_counts)
+    print('| Selected string | Count |')
+    for selected_bigstring, selected_count in zip(selected_bitstrings, selected_counts):
+        print(selected_bigstring, selected_count[0])
 
     # Plot results after pproc
     fig, ax = plt.subplots()
@@ -188,5 +189,6 @@ if __name__ == '__main__':
     minimize_methods = ['Nelder-Mead', 'Powell', 'CG', 'BFGS', 'Newton-CG', 'COBYLA']
 
     # Define problem
-    nqubits = 5
-    run_exp(nqubits)
+    nqubits_list = [3, 4, 5, 6, 7]
+    for nqubits in nqubits_list:
+        run_exp(nqubits)
