@@ -24,8 +24,6 @@ def rho(x, y, R, k):
     else:
         return y.T@R[:, :, -k]@x
 
-
-
 model = ga(function=islr, dimension=2*N, variable_type='int', variable_boundaries=np.array([[0,Q-1]]*2*N))
 
 model.run()
